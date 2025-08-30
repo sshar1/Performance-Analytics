@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom';
 import Dock from '../components/Dock';
 import { VscHome, VscArchive, VscAccount, VscSettingsGear } from "react-icons/vsc";
@@ -10,17 +10,6 @@ const dockItems = [
     { icon: <VscAccount size={18} />, label: 'Profile', onClick: () => alert('Profile!') },
     { icon: <VscSettingsGear size={18} />, label: 'Settings', onClick: () => alert('Settings!') },
 ];
-
-
-// --- Mock Data ---
-// const initialFiles = [
-//     { id: 1, name: 'sales_data_2023' },
-//     { id: 2, name: 'user_demographics' },
-//     { id: 3, name: 'inventory_levels' },
-//     { id: 4, name: 'marketing_campaign_q1' },
-//     { id: 5, name: 'website_traffic_logs' },
-//     { id: 6, name: 'customer_feedback' },
-// ];
 
 // --- SVG Icons ---
 const EditIcon = ({ className = 'h-5 w-5' }) => (
@@ -54,72 +43,72 @@ const TrashIcon = ({ className = 'h-5 w-5' }) => (
     </svg>
 );
 
+const PlusIcon = ({ className = 'h-12 w-12' }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+);
+
 
 // --- Dashboard Component ---
 
 function DashboardPage() {
-    //const [files, setFiles] = useState(initialFiles);
     const [files, setFiles] = useState([]);
     const [editingFileId, setEditingFileId] = useState(null);
     const [newName, setNewName] = useState('');
+    const fileInputRef = useRef(null);
 
-    // useEffect hook to fetch the file list when the component mounts.
     useEffect(() => {
-        // We fetch the manifest file from the public folder.
         fetch('/file-manifest.json')
             .then(response => {
-                // Check if the network response is ok
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
             })
-            .then(data => {
-                // Set the component's state with the fetched file data.
-                setFiles(data);
-            })
-            .catch(error => {
-                // Log any errors to the console.
-                console.error('Error fetching the file manifest:', error);
-            });
-    }, []); // The empty dependency array ensures this effect runs only once.
+            .then(data => setFiles(data))
+            .catch(error => console.error('Error fetching the file manifest:', error));
+    }, []);
 
-    /**
-     * Deletes a file from the list based on its ID.
-     * @param {number} fileId - The ID of the file to delete.
-     */
     const handleDelete = (fileId) => {
-        // Filter out the file with the matching ID
         setFiles(files.filter((file) => file.id !== fileId));
     };
 
-    /**
-     * Handles the start of an edit action.
-     * @param {object} file - The file object to be edited.
-     */
     const handleEdit = (file) => {
         setEditingFileId(file.id);
-        setNewName(file.name);
+        setNewName(file.publicName);
     };
 
-    /**
-     * Saves the new name for a file.
-     * @param {number} fileId - The ID of the file to save.
-     */
     const handleSave = (fileId) => {
-        // Map over the files and update the name of the one with the matching ID
         setFiles(
             files.map((file) =>
-                file.id === fileId ? { ...file, name: newName } : file
+                file.id === fileId ? { ...file, publicName : newName } : file
             )
         );
-        // Reset editing state
         setEditingFileId(null);
         setNewName('');
     };
 
+    const handleAddFileClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleFileSelected = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            console.log('Selected file:', file.name);
+            // TODO add file processing logic
+            event.target.value = null;
+        }
+    };
+
     return (
         <div className="bg-gray-100 h-screen w-screen font-sans">
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelected}
+                accept=".csv"
+                className="hidden"
+            />
             <header className="bg-white shadow-md">
                 <div className="mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -133,8 +122,7 @@ function DashboardPage() {
                                 key={file.id}
                                 className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300"
                             >
-                                {/* Image Placeholder */}
-                                <Link to={`/visualizer`}>
+                                <Link to={`/visualizer/${file.fileName}`}>
                                     <div className="w-full h-40 bg-gray-200 flex items-center justify-center">
                                         <span className="text-gray-500">Image Placeholder</span>
                                     </div>
@@ -159,8 +147,8 @@ function DashboardPage() {
                                     ) : (
                                         <div className="flex justify-between items-center">
                                             <a href={`#/dashboard/file/${file.id}`} className="flex-grow min-w-0">
-                                                <p className="text-gray-800 font-semibold truncate" title={file.name}>
-                                                    {file.name}
+                                                <p className="text-gray-800 font-semibold truncate" title={file.publicName}>
+                                                    {file.publicName}
                                                 </p>
                                             </a>
                                             <div className="flex items-center space-x-2 ml-2 flex-shrink-0">
@@ -182,6 +170,15 @@ function DashboardPage() {
                                 </div>
                             </div>
                         ))}
+                        <div
+                            onClick={handleAddFileClick}
+                            className="bg-gray-50 rounded-xl shadow-lg overflow-hidden flex items-center justify-center cursor-pointer transform hover:scale-105 transition-transform duration-300 group"
+                        >
+                            <div className="w-full h-full p-4 flex flex-col items-center justify-center border-4 border-dashed border-gray-300 rounded-xl group-hover:border-blue-500 group-hover:bg-blue-50 transition-colors">
+                                <PlusIcon className="h-12 w-12 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                <p className="mt-2 text-sm font-semibold text-gray-500 group-hover:text-blue-600 transition-colors">Add New File</p>
+                            </div>
+                        </div>
                     </div>
                     <Dock
                         items={dockItems}

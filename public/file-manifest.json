@@ -1,8 +1,8 @@
 [
-  { "id": 1, "name": "sales_data_2023.csv" },
-  { "id": 2, "name": "user_demographics.csv" },
-  { "id": 3, "name": "inventory_levels.csv" },
-  { "id": 4, "name": "marketing_campaign_q1.csv" },
-  { "id": 5, "name": "website_traffic_logs.csv" },
-  { "id": 6, "name": "customer_feedback.csv" }
+  { "id": 1, "publicName": "path1", "fileName": "path1.csv" },
+  { "id": 2, "publicName": "user_demographics.csv", "fileName": "path2" },
+  { "id": 3, "publicName": "inventory_levels.csv", "fileName": "path3" },
+  { "id": 4, "publicName": "marketing_campaign_q1.csv", "fileName": "path4" },
+  { "id": 5, "publicName": "website_traffic_logs.csv", "fileName": "path5" },
+  { "id": 6, "publicName": "customer_feedback.csv", "fileName": "path6"}
 ]
