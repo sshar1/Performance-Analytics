@@ -31,7 +31,7 @@ const router = createBrowserRouter([
                 element: <DashboardPage />
             },
             {
-                path: '/visualizer/:fileName',
+                path: '/visualizer/:publicName',
                 element: <VisualizerPage />
             }
         ]

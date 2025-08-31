@@ -122,7 +122,10 @@ function DashboardPage() {
                                 key={file.id}
                                 className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300"
                             >
-                                <Link to={`/visualizer/${file.fileName}`}>
+                                <Link
+                                    to={`/visualizer/${file.publicName}`}
+                                    state={{ fileName: file.fileName }}
+                                >
                                     <div className="w-full h-40 bg-gray-200 flex items-center justify-center">
                                         <span className="text-gray-500">Image Placeholder</span>
                                     </div>
